@@ -25,18 +25,19 @@ type CellType = {
 
 
 function App() {
+  //board
   const [board_x, setBoardX] = useState(9);
   const [board_y, setBoardY] = useState(6);
-  
-  const [isLive , setIsLive] = useState(true);
-
   const array : CellType[][] = Array.from({ length: board_x }, () =>
-  Array.from({ length: board_y }, () => ({ player: null, state: 0 }))
-);
-
+    Array.from({ length: board_y }, () => ({ player: null, state: 0 }))
+  );
   const [board, setBoard] = useState<CellType[][]>(array);
 
+  //game helper
   const [canClick, setCanClick] = useState(true);
+  const [isLive , setIsLive] = useState(true);
+  const [gameOver, setGameOver] = useState(false);
+  const [winner, setWinner] = useState(-1);
 
   //player
   const [mainPlayerIndex, setMainPlayerIndex] = useState(0);
@@ -51,6 +52,93 @@ function App() {
     "R",
   ]
 
+  const check_gameover = () => {
+        let one_win = true
+        let two_lose = true
+        let score = 0
+
+        for(let i =0;i<board_x;i++) {
+          for(let j = 0; j<board_y;j++) {
+            if(board[i][j].player !== null && board[i][j].player === "B") {
+              one_win = false;
+              score += 1;
+            }else if (board[i][j].player !== null && board[i][j].player === "R"){
+              two_lose = false;
+              score+=1;
+            }
+          }
+        }
+        
+        if (one_win && score > 1) {
+          setGameOver(true);
+          setWinner(1);
+          return true;
+
+        } else if (two_lose && score > 1) {
+          setGameOver(true);
+          setWinner(0);
+          return true;
+
+        }else{
+          return false;
+        }
+  }
+
+  const chain_reaction = async (i: number, j:number) => {
+    let max = (i === 0 || i === (board_x - 1) || j === 0 || j === (board_y - 1)) ?
+      ((
+      (i === 0 && j === 0) || 
+      (i === 0 && j === (board_y-1) ) ||
+      ( j === 0 && i === board_x -1) ||
+      (j === board_y -1 && i === board_x -1) ) ? 1 : 2 )
+    :3;
+      
+    let newboard = board.map((row,indI) => 
+        row.map((val,indJ) => 
+            val
+        )
+    )
+
+    let current_player_color = index_to_color_map[mainPlayerIndex];
+
+    if(newboard[i][j].player === null || newboard[i][j].state < max) {
+      newboard[i][j].player = current_player_color as "B" | "R";
+      newboard[i][j].state += 1;
+
+    }else {
+      return true;
+    }
+
+    setBoard(newboard);
+    return false;
+  }
+
+  const make_move = async (i: number, j: number ) => {
+    if(gameOver) return;
+
+    if(await chain_reaction(i,j)) {
+      let newboard = board.map((row,_) => 
+          row.map((val,_) => 
+              val
+          )
+      )
+
+      newboard[i][j].player = null;
+      newboard[i][j].state = 0;
+
+      setBoard(newboard);
+
+      if(i > 0) make_move(i-1,j);
+      if(i < board_x-1) make_move(i+1,j);
+      if(j > 0) make_move(i,j-1);
+      if(j < board_y-1) make_move(i,j+1);
+    }
+
+
+
+    if(!gameOver) check_gameover();
+  }
+
   const onClickCell = async (i: number, j: number) => {
     setCanClick(false);
     console.log(`Click canccel at position: (${i}, ${j})`);
@@ -58,17 +146,11 @@ function App() {
     const player_color = index_to_color_map[mainPlayerIndex];
 
     if (board[i][j].player === null || player_color === board[i][j].player ) {
-        const newBoard = board.map((row,rowI) =>
-
-          row.map((cell,colJ) => 
-             rowI === i && colJ === j ? { ...cell , player: player_color as "B" | "R", state: cell.state + 1 } : cell
-          )
-        ) 
-
-        setBoard(newBoard);
+          make_move(i,j);
         setMainPlayerIndex((mainPlayerIndex+1)%2);
     }
 
+    setCanClick(true);
 
   }
 
