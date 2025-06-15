@@ -83,14 +83,9 @@ class ChainreactionAgent:
     def chain_reaction(self, i, j, board, player):
         state = self.get_max_state(i, j)
         
-        if board[i][j]["player"] == None:
+        if board[i][j]["state"] < state:
             board[i][j]["player"] = player
             board[i][j]["state"] += 1
-        elif board[i][j]["player"] == player and board[i][j]["state"] < state:
-            board[i][j]["state"] += 1
-        elif board[i][j]["state"] < state:
-             board[i][j]["state"] += 1
-             board[i][j]["player"] = player
         else:
             #if win
             if self.game_ended(board) != 0:
@@ -192,11 +187,10 @@ class ChainreactionAgent:
             
             newboard = copy.deepcopy(board)
             newboard = self.make_move(newboard,self.ai_color,move)
-            end_game = self.game_ended(board)
+            end_game = self.game_ended(newboard)
             
             if end_game != 0:
-                best_moves.append(move)
-                continue
+                return move
             
             _,bestmove = self.minmax(newboard,level,float('-inf'),float('inf'),self.heuristic1,True)
             
@@ -218,119 +212,119 @@ class ChainreactionAgent:
         
         
 
-def main():
-    ai_color = "R"
-    human_color = "B"
-    game = ChainreactionAgent(9,6,ai_color,human_color)
+# def main():
+#     ai_color = "R"
+#     human_color = "B"
+#     game = ChainreactionAgent(9,6,ai_color,human_color)
     
-    if not os.path.exists('gamestate.txt'):
-        initial_state = [[(0, None) for _ in range(6)] for _ in range(9)]
-        with open('gamestate.txt', 'w') as f:
-            f.write("Human Move:\n")
-            for row in initial_state:
-                f.write(" ".join('0' if count == 0 else f"{count}{color}" 
-                                for count, color in row) + "\n")
+#     if not os.path.exists('gamestate.txt'):
+#         initial_state = [[(0, None) for _ in range(6)] for _ in range(9)]
+#         with open('gamestate.txt', 'w') as f:
+#             f.write("Human Move:\n")
+#             for row in initial_state:
+#                 f.write(" ".join('0' if count == 0 else f"{count}{color}" 
+#                                 for count, color in row) + "\n")
     
 
-    while True:
-        # Human player's turn (via console input)
-        print("Current Board State:")
-        with open('gamestate.txt', 'r') as f:
-            print(f.read())
+#     while True:
+#         # Human player's turn (via console input)
+#         print("Current Board State:")
+#         with open('gamestate.txt', 'r') as f:
+#             print(f.read())
         
-        while True:
-            try:
-                move_input = input("Your move (row col, e.g., '0 0'): ")
-                row, col = map(int, move_input.split())
-                if not (0 <= row < 9 and 0 <= col < 6):
-                    print("Invalid position! Row 0-8, Col 0-5")
-                    continue
-                break
-            except ValueError:
-                print("Invalid input! Use format: row col")
+#         while True:
+#             try:
+#                 move_input = input("Your move (row col, e.g., '0 0'): ")
+#                 row, col = map(int, move_input.split())
+#                 if not (0 <= row < 9 and 0 <= col < 6):
+#                     print("Invalid position! Row 0-8, Col 0-5")
+#                     continue
+#                 break
+#             except ValueError:
+#                 print("Invalid input! Use format: row col")
         
-        # Update game state with human move
-        with open('gamestate.txt', 'r') as f:
-            lines = f.read().splitlines()
+#         # Update game state with human move
+#         with open('gamestate.txt', 'r') as f:
+#             lines = f.read().splitlines()
         
-        # Process human move
-        state = []
-        for i in range(1, 10):
-            cells = lines[i].split()
-            row_state = []
-            for cell in cells:
-                if cell == '0':
-                    row_state.append({"player": None, "state": 0})
-                else:
-                    count = int(cell[:-1])
-                    color = cell[-1]
-                    row_state.append({"player": color, "state": count})
-            state.append(row_state)
+#         # Process human move
+#         state = []
+#         for i in range(1, 10):
+#             cells = lines[i].split()
+#             row_state = []
+#             for cell in cells:
+#                 if cell == '0':
+#                     row_state.append({"player": None, "state": 0})
+#                 else:
+#                     count = int(cell[:-1])
+#                     color = cell[-1]
+#                     row_state.append({"player": color, "state": count})
+#             state.append(row_state)
         
-        # Apply human move
-        count, color = state[row][col]["state"], state[row][col]["player"]
-        if color == human_color or color is None:
-            state = game.make_move(state, human_color, (row, col))
-        else:
-            print("Invalid move! You can only move to an empty cell or your own cell.")
+#         # Apply human move
+#         count, color = state[row][col]["state"], state[row][col]["player"]
+#         if color == human_color or color is None:
+#             state = game.make_move(state, human_color, (row, col))
+#         else:
+#             print("Invalid move! You can only move to an empty cell or your own cell.")
         
 
-        # Write updated state to file
-        with open('gamestate.txt', 'w') as f:
-            f.write("Human Move:\n")
-            for i in range(9):
-                row = []
-                for j in range(6):
-                    count, color = state[i][j]["state"], state[i][j]["player"]
-                    if count == 0:
-                        row.append('0')
-                    else:
-                        row.append(f"{count}{color}")
-                f.write(" ".join(row) + "\n")
+#         # Write updated state to file
+#         with open('gamestate.txt', 'w') as f:
+#             f.write("Human Move:\n")
+#             for i in range(9):
+#                 row = []
+#                 for j in range(6):
+#                     count, color = state[i][j]["state"], state[i][j]["player"]
+#                     if count == 0:
+#                         row.append('0')
+#                     else:
+#                         row.append(f"{count}{color}")
+#                 f.write(" ".join(row) + "\n")
                 
-        print("Your move applied. Current Board State:")
-        with open('gamestate.txt', 'r') as f:
-            print(f.read())
+#         print("Your move applied. Current Board State:")
+#         with open('gamestate.txt', 'r') as f:
+#             print(f.read())
         
-        # AI's turn
+#         # AI's turn
             
         
         
-        move = game.get_next_move(state, 3)
+#         move = game.get_next_move(state, 3)
         
-        print(f"AI's move: {move}")
-        if move is None:
-            print("No valid moves available for AI.")
-            return
+#         print(f"AI's move: {move}")
+#         if move is None:
+#             print("No valid moves available for AI.")
+#             return
         
-        state = game.make_move(state, ai_color, move)
-        # Write updated state to file
-        with open('gamestate.txt', 'w') as f:
-            f.write("Ai Move:\n")
-            for i in range(9):
-                row = []
-                for j in range(6):
-                    count, color = state[i][j]["state"], state[i][j]["player"]
-                    if count == 0:
-                        row.append('0')
-                    else:
-                        row.append(f"{count}{color}")
-                f.write(" ".join(row) + "\n")
+#         state = game.make_move(state, ai_color, move)
+#         # Write updated state to file
+#         with open('gamestate.txt', 'w') as f:
+#             f.write("Ai Move:\n")
+#             for i in range(9):
+#                 row = []
+#                 for j in range(6):
+#                     count, color = state[i][j]["state"], state[i][j]["player"]
+#                     if count == 0:
+#                         row.append('0')
+#                     else:
+#                         row.append(f"{count}{color}")
+#                 f.write(" ".join(row) + "\n")
             
-        if game.game_ended(state) != 0:
-            print("Game Over!")
-            if game.game_ended(state) == 2:
-                print("AI wins!")
-            else:
-                print("You win!")
-            return
+#         if game.game_ended(state) != 0:
+#             print("Game Over!")
+#             if game.game_ended(state) == 2:
+#                 print("AI wins!")
+#             else:
+#                 print("You win!")
+#             return
     
         
         
         
             
-if __name__ == "__main__":
-    main()      
+# if __name__ == "__main__":
+#     main()      
         
                 
 

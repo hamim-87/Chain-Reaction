@@ -9,7 +9,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173/"],  
+    allow_origins=["http://localhost:5173"],  
     allow_credentials=True,
     allow_methods=["*"],  
     allow_headers=["*"],  
@@ -34,9 +34,9 @@ init_file()
 @app.post("/get_next_move", response_model=dict)
 async def get_next_move(response: Response):
     board = get_board()
-    move = agent_blue.get_next_move(board,response.level)
+    move = agent_red.get_next_move(board,response.level)
     
-    write_to_file_agent(move, agent_blue)
+    write_to_file_agent(move, agent_red)
     
     return {"move": move}
     
@@ -45,7 +45,7 @@ async def get_next_move(response: Response):
 @app.post("/make_move")
 async def make_move(move: tuple[int, int]):
     
-    write_to_file_human(move, agent_blue)
+    write_to_file_human(move, agent_red)
     
     return {"message": "Move made successfully"}
     
