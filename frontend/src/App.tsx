@@ -38,6 +38,8 @@ function App() {
   const [isLive , setIsLive] = useState(true);
   const [gameOver, setGameOver] = useState(false);
   const [winner, setWinner] = useState(-1);
+  const [meVsAi, setMeVsAi] = useState(true);
+  const [level, setLevel] = useState(2);
 
   //player
   const [mainPlayerIndex, setMainPlayerIndex] = useState(0);
@@ -84,7 +86,7 @@ function App() {
         }
   }
 
-  const chain_reaction = async (i: number, j:number) => {
+  const chain_reaction = async (i: number, j:number, currentPlayer = mainPlayerIndex) => {
     let max = (i === 0 || i === (board_x - 1) || j === 0 || j === (board_y - 1)) ?
       ((
       (i === 0 && j === 0) || 
@@ -99,7 +101,9 @@ function App() {
         )
     )
 
-    let current_player_color = index_to_color_map[mainPlayerIndex];
+    let current_player_color = index_to_color_map[currentPlayer];
+
+    console.log(current_player_color);
 
     if(newboard[i][j].player === null || newboard[i][j].state < max) {
       newboard[i][j].player = current_player_color as "B" | "R";
@@ -113,10 +117,49 @@ function App() {
     return false;
   }
 
-  const make_move = async (i: number, j: number ) => {
+
+
+
+    const getAiNextMove = async (current_player: number, level:number) => {
+      try {
+        const response = await fetch("http://localhost:8000/get_next_move", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ current_player, level }),
+        });
+
+        const data = await response.json();
+        console.log("AI move:", data.move); // e.g., [3, 2]
+        return data.move;
+      } catch (error) {
+        console.error("Error getting AI move:", error);
+      }
+  };
+
+
+  const updateMove = async (x:number, y:number) => {
+        try {
+          const response = await fetch("http://localhost:8000/make_move", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify([x, y]),
+          });
+
+          const data = await response.json();
+          console.log("Move response:", data.message);
+        } catch (error) {
+          console.error("Error making move:", error);
+        }
+    };
+
+  const make_move = async (i: number, j: number , currentPlayer = mainPlayerIndex) => {
     if(gameOver) return;
 
-    if(await chain_reaction(i,j)) {
+    if(await chain_reaction(i,j,currentPlayer)) {
       let newboard = board.map((row,_) => 
           row.map((val,_) => 
               val
@@ -128,10 +171,10 @@ function App() {
 
       setBoard(newboard);
 
-      if(i > 0) make_move(i-1,j);
-      if(i < board_x-1) make_move(i+1,j);
-      if(j > 0) make_move(i,j-1);
-      if(j < board_y-1) make_move(i,j+1);
+      if(i > 0) await make_move(i-1,j,currentPlayer);
+      if(i < board_x-1) await make_move(i+1,j,currentPlayer);
+      if(j > 0) await make_move(i,j-1,currentPlayer);
+      if(j < board_y-1) await make_move(i,j+1,currentPlayer);
     }
 
 
@@ -146,9 +189,40 @@ function App() {
     const player_color = index_to_color_map[mainPlayerIndex];
 
     if (board[i][j].player === null || player_color === board[i][j].player ) {
-          make_move(i,j);
-        setMainPlayerIndex((mainPlayerIndex+1)%2);
+      await make_move(i, j);
+
+      // Call backend to update move (if needed)
+      if (meVsAi) {
+        await updateMove(i, j);
+      }
+
+      // Change turn
+      const nextPlayer = (mainPlayerIndex + 1) % 2;
+      setMainPlayerIndex(nextPlayer);
+
+      // Step 2: AI's move
+      if (meVsAi && nextPlayer === 1 && !gameOver) {
+        try {
+          const [ai_i, ai_j] = await getAiNextMove(nextPlayer, level);
+          console.log("AI chose:", ai_i, ai_j);
+
+          // Small delay to simulate thinking
+          await new Promise(res => setTimeout(res, 300));
+
+          await make_move(ai_i, ai_j,1);
+          await updateMove(ai_i, ai_j);
+          setMainPlayerIndex(0); // back to human
+
+        } catch (error) {
+          console.error("AI move failed:", error);
+        }
+      }
+
+
     }
+
+
+
 
     setCanClick(true);
 
