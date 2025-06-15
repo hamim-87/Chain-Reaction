@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
 import Cell from './components/Cell'
 import {
@@ -26,8 +26,8 @@ type CellType = {
 
 function App() {
   //board
-  const [board_x, setBoardX] = useState(9);
-  const [board_y, setBoardY] = useState(6);
+  const [board_x,] = useState(9);
+  const [board_y,] = useState(6);
   const array : CellType[][] = Array.from({ length: board_x }, () =>
     Array.from({ length: board_y }, () => ({ player: null, state: 0 }))
   );
@@ -38,8 +38,9 @@ function App() {
   const [isLive , setIsLive] = useState(true);
   const [gameOver, setGameOver] = useState(false);
   const [winner, setWinner] = useState(-1);
-  const [meVsAi, setMeVsAi] = useState(true);
+  const [meVsAi, setMeVsAi] = useState(false);
   const [level, setLevel] = useState(2);
+  const [aiVsAi , setAiVsAi] = useState(true);
 
   //player
   const [mainPlayerIndex, setMainPlayerIndex] = useState(0);
@@ -95,15 +96,15 @@ function App() {
       (j === board_y -1 && i === board_x -1) ) ? 1 : 2 )
     :3;
       
-    let newboard = board.map((row,indI) => 
-        row.map((val,indJ) => 
+    let newboard = board.map((row,_) => 
+        row.map((val,_) => 
             val
         )
     )
 
     let current_player_color = index_to_color_map[currentPlayer];
 
-    console.log(current_player_color);
+    //console.log(current_player_color);
 
     if(newboard[i][j].player === null || newboard[i][j].state < max) {
       newboard[i][j].player = current_player_color as "B" | "R";
@@ -131,7 +132,7 @@ function App() {
         });
 
         const data = await response.json();
-        console.log("AI move:", data.move); // e.g., [3, 2]
+        console.log("AI move:", data.move); 
         return data.move;
       } catch (error) {
         console.error("Error getting AI move:", error);
@@ -184,35 +185,34 @@ function App() {
 
   const onClickCell = async (i: number, j: number) => {
     setCanClick(false);
-    console.log(`Click canccel at position: (${i}, ${j})`);
+
 
     const player_color = index_to_color_map[mainPlayerIndex];
 
     if (board[i][j].player === null || player_color === board[i][j].player ) {
       await make_move(i, j);
 
-      // Call backend to update move (if needed)
+
       if (meVsAi) {
         await updateMove(i, j);
       }
 
-      // Change turn
+
       const nextPlayer = (mainPlayerIndex + 1) % 2;
       setMainPlayerIndex(nextPlayer);
 
-      // Step 2: AI's move
+
       if (meVsAi && nextPlayer === 1 && !gameOver) {
         try {
           const [ai_i, ai_j] = await getAiNextMove(nextPlayer, level);
-          console.log("AI chose:", ai_i, ai_j);
+          //console.log("AI chose:", ai_i, ai_j);
 
-          // Small delay to simulate thinking
+
           await new Promise(res => setTimeout(res, 300));
 
           await make_move(ai_i, ai_j,1);
-          await updateMove(ai_i, ai_j);
-          setMainPlayerIndex(0); // back to human
-
+          //await updateMove(ai_i, ai_j);
+          setMainPlayerIndex(0); 
         } catch (error) {
           console.error("AI move failed:", error);
         }
@@ -227,6 +227,88 @@ function App() {
     setCanClick(true);
 
   }
+
+
+
+  const ai_make_move = async (current_player: number, level:number) => {
+      try {
+        const response = await fetch("http://localhost:8000/ai_vs_ai", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ current_player, level }),
+        });
+
+        const data = await response.json();
+        console.log("AI move:", data.move); 
+        return data.move;
+      } catch (error) {
+        console.error("Error getting AI move:", error);
+      }
+  };
+
+
+
+
+  // AI vs AI mode
+  useEffect(() => {
+    if (!aiVsAi || gameOver) return;
+    
+    const aiVsAiMove = async () => {
+      setCanClick(false);
+      
+      // Get AI move
+      const [row, col] = await ai_make_move(mainPlayerIndex, level);
+      
+      // Process move
+      make_move( row, col, mainPlayerIndex);
+  
+      
+      // Check for winner
+      const wn = check_gameover();
+      if (wn) {
+
+        setGameOver(true);
+        setCanClick(true);
+        return;
+      }
+      
+      // Switch to next player
+      const nextPlayer = (mainPlayerIndex + 1) % 2;
+      setMainPlayerIndex(nextPlayer);
+      
+      setCanClick(true);
+    };
+    
+    const timer = setTimeout(aiVsAiMove, 300);
+    return () => clearTimeout(timer);
+  }, [aiVsAi, gameOver, mainPlayerIndex, board, level]);
+
+  // const ai_vs_ai_move = async () => {
+  //   setCanClick(false);
+
+
+  
+  //   try {
+  //     const [row, col] = await ai_make_move(mainPlayerIndex,level);
+
+  //     console.log(`ai ${mainPlayerIndex} make a move: ${row},${col}`);
+
+  //     await make_move(row,col,mainPlayerIndex);
+
+  //     const newIndex = (mainPlayerIndex+1)%2;
+  //     await new Promise(res => setTimeout(res,300));
+
+  //     setMainPlayerIndex(newIndex);
+      
+  //   }catch(e) {
+  //     console.log("fail to make move ai:", e);
+  //   }
+
+
+
+  // }
 
 
 
