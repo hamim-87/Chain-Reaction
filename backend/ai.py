@@ -12,6 +12,7 @@ class ChainreactionAgent:
         self.critical_mass = self.calculate_critical_mass(n, m)
         self.ai_color = ai_color
         self.opponent_color = opponent_color
+        self.heuristic = self.heuristic1  # Default heuristic function
     
     def calculate_critical_mass(self, n, m):
         
@@ -178,6 +179,95 @@ class ChainreactionAgent:
         
         return (ai_score - op_score)
     
+    def heuristic2(self, board):
+        ai_cells = 0
+        op_cells = 0
+
+        for i in range(self.row):
+            for j in range(self.col):
+                if board[i][j]["player"] == self.ai_color:
+                    ai_cells += 1
+                elif board[i][j]["player"] == self.opponent_color:
+                    op_cells += 1
+
+        return (ai_cells - op_cells)
+    
+    def heuristic3(self, board):
+        ai_score = 0
+        op_score = 0
+
+        for i in range(self.row):
+            for j in range(self.col):
+                max_capacity = self.calculate_critical_mass(i, j)
+                cell = board[i][j]
+
+                if cell["player"] == self.ai_color:
+                    ai_score += (cell["state"] / max_capacity)
+                elif cell["player"] == self.opponent_color:
+                    op_score += (cell["state"] / max_capacity)
+
+        return ai_score - op_score
+    
+    def heuristic4(self, board):
+        ai_score = 0
+        op_score = 0
+
+        for i in range(self.row):
+            for j in range(self.col):
+                weight = 0
+                if (i == 0 or i == self.row - 1) and (j == 0 or j == self.col - 1):
+                    weight = 3  # corner
+                elif i == 0 or i == self.row - 1 or j == 0 or j == self.col - 1:
+                    weight = 2  # edge
+                else:
+                    weight = 1  # center
+
+                if board[i][j]["player"] == self.ai_color:
+                    ai_score += weight
+                elif board[i][j]["player"] == self.opponent_color:
+                    op_score += weight
+
+        return ai_score - op_score
+
+
+    def heuristic5(self, board):
+        ai_score = 0
+        op_score = 0
+
+        for i in range(self.row):
+            for j in range(self.col):
+                cell = board[i][j]
+                if cell["player"] == self.ai_color:
+                    vulnerable = False
+                    for dx, dy in self.directions:
+                        ni, nj = i + dx, j + dy
+                        if 0 <= ni < self.row and 0 <= nj < self.col:
+                            neighbor = board[ni][nj]
+                            if neighbor["player"] == self.opponent_color and neighbor["state"] == self.get_critical_mass(ni, nj) - 1:
+                                vulnerable = True
+                    if vulnerable:
+                        ai_score -= 2
+                    else:
+                        ai_score += 1
+                elif cell["player"] == self.opponent_color:
+                    op_score += 1
+
+        return ai_score - op_score
+    
+    def set_huristic(self, heuristic_number):
+        if heuristic_number == 1:
+            self.heuristic = self.heuristic1
+        elif heuristic_number == 2:
+            self.heuristic = self.heuristic2
+        elif heuristic_number == 3:
+            self.heuristic = self.heuristic3
+        elif heuristic_number == 4:
+            self.heuristic = self.heuristic4
+        elif heuristic_number == 5:
+            self.heuristic = self.heuristic5
+
+
+    
     def get_next_move(self,board,level):
         
         available_moves = self.get_available_moves(board,self.ai_color)
@@ -192,15 +282,19 @@ class ChainreactionAgent:
             if end_game != 0:
                 return move
             
-            _,bestmove = self.minmax(newboard,level,float('-inf'),float('inf'),self.heuristic1,True)
+            _,bestmove = self.minmax(newboard,level,float('-inf'),float('inf'),self.heuristic,True)
             
             best_moves.append(bestmove)
+            
         
         applied_move = None  
         if len(best_moves) > 0:
             index = random.randint(0, len(best_moves) - 1)
-            print("random index:", index)
+            
             applied_move = best_moves[index]
+            
+        print(best_moves)
+        print("random index:", index, "move:", applied_move)
         
         return applied_move if applied_move is not None else random.choice(available_moves)
         

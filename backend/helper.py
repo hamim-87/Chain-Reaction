@@ -62,7 +62,7 @@ def write_to_file_agent(move, agent):
     
     state = get_board()
     
-    state = agent.make_move(state, "R", move)
+    state = agent.make_move(state, agent.ai_color, move)
         # Write updated state to file
     with open('gamestate.txt', 'w') as f:
         f.write("Ai Move:\n")

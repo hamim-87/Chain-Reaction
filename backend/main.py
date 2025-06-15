@@ -17,6 +17,7 @@ app.add_middleware(
 
 agent_red = ChainreactionAgent(9,6,"R","B")
 agent_blue = ChainreactionAgent(9,6,"B","R")
+agent_blue.set_huristic(2)
 
 class Cell(BaseModel):
     player: str | None
@@ -48,4 +49,18 @@ async def make_move(move: tuple[int, int]):
     write_to_file_human(move, agent_red)
     
     return {"message": "Move made successfully"}
+
+@app.post("/ai_vs_ai", response_model=dict)
+async def get_next_move(response: Response):
+    board = get_board()
+    if response.current_player == 0:
+        agent = agent_blue
+        move = agent_blue.get_next_move(board,response.level)
+    else:
+        agent = agent_red
+        move = agent_red.get_next_move(board,response.level)
+    
+    write_to_file_agent(move, agent)
+    
+    return {"move": move}
     
