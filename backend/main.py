@@ -15,9 +15,9 @@ app.add_middleware(
     allow_headers=["*"],  
 )
 
-agent_red = ChainreactionAgent(9,6,"R","B")
-agent_blue = ChainreactionAgent(9,6,"B","R")
-agent_blue.set_huristic(2)
+# agent_red = ChainreactionAgent(9,6,"R","B")
+# agent_blue = ChainreactionAgent(9,6,"B","R")
+# agent_blue.set_huristic(2)
 
 class Cell(BaseModel):
     player: str | None
@@ -29,7 +29,10 @@ class Response(BaseModel):
     current_player: int
     level: int
     
-init_file()
+# init_file()
+
+init_done = False
+
 
 
 @app.post("/get_next_move", response_model=dict)
@@ -62,5 +65,19 @@ async def get_next_move(response: Response):
     
     write_to_file_agent(move, agent)
     
-    return {"move": move}
-    
+    return {"move": move}    
+
+
+@app.get("/init")
+async def init():
+    global agent_red, agent_blue, init_done
+    if not init_done:
+        agent_red = ChainreactionAgent(9, 6, "R", "B")
+        agent_blue = ChainreactionAgent(9, 6, "B", "R")
+        agent_blue.set_huristic(2)
+        init_file()
+        init_done = True
+        return {"message": "Initialization complete"}
+    else:
+        return {"message": "Already initialized"}
+
