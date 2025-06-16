@@ -38,9 +38,9 @@ function App() {
   const [isLive , setIsLive] = useState(true);
   const [gameOver, setGameOver] = useState(false);
   const [winner, setWinner] = useState(-1);
-  const [meVsAi, setMeVsAi] = useState(false);
+  const [meVsAi, setMeVsAi] = useState(true);
   const [level, setLevel] = useState(2);
-  const [aiVsAi , setAiVsAi] = useState(true);
+  const [aiVsAi , setAiVsAi] = useState(false);
 
   //player
   const [mainPlayerIndex, setMainPlayerIndex] = useState(0);
@@ -54,6 +54,27 @@ function App() {
     "B",
     "R",
   ]
+
+    useEffect(() => {
+        const init_game = async () => {
+            try{
+                const response = await fetch("http://localhost:8000/init",{
+                  method:"GET",
+                  headers: {
+                      "Content-Type": "application/json",
+                  },
+            
+                })
+
+                const data = await response.json();
+
+                console.log(data.message);
+            }catch(e){
+              console.log("fali to init game\n");
+            }
+        }
+      init_game();
+  },[])
 
   const check_gameover = () => {
         let one_win = true
