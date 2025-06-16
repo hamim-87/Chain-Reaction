@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, use } from 'react'
 import './App.css'
 import Cell from './components/Cell'
 import {
@@ -14,8 +14,23 @@ import {
   DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu"
 
+import { Button } from "@/components/ui/button"
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer"
+
 
 import CategoryIcon from '@mui/icons-material/Category';
+
+import playerWinImg from './images/won.gif'
+import playerLoseImg from './images/lose.gif'
 
 type CellType = {
   player: "B" | "R" | null;
@@ -394,13 +409,45 @@ function App() {
   const [position, setPosition] = useState("bottom")
 
 
+
+
   return (
     <>
       { /* root div */}
       <div className='flex justify-center items-center flex-col min-h-screen bg-[#191919] text-white font-sans antialiased'>
 
+
           {/* game */}
           <div>
+                           {
+             (gameOver) && 
+                  <Drawer open={gameOver} onOpenChange={setGameOver} >
+                    <DrawerTrigger>Open</DrawerTrigger>
+                    <DrawerContent className="bg-[#191919] text-white font-sans antialiased">
+                      <DrawerHeader>
+                        <DrawerTitle className="bold text-white">
+                          {(winner === 1 && meVsAi) ? "AI Win!" : "Who is the conquer of the word!"}
+                        </DrawerTitle>
+                            
+                              { (winner === 1) ? <img
+                                src={playerLoseImg}
+                                alt="Player Lose Animation"
+                                className="mx-auto mt-4 w-350 h-100 object-contain"
+                              />
+                              : <img
+                                src={playerWinImg}
+                                alt="Player Win Animation"
+                                className="mx-auto mt-4 w-350 h-100 object-contain"
+                              />
+                              }
+                      </DrawerHeader>
+                      <DrawerFooter>
+                        <Button onClick={() => {setGameOver(false); reset_game();}}>Reset Game</Button>
+ 
+                      </DrawerFooter>
+                    </DrawerContent>
+                  </Drawer>
+           }
                 { /* header */}
                 <div className='flex'>
                   <div className='w-14 flex-4'>
@@ -430,11 +477,15 @@ function App() {
                         <DropdownMenuSeparator />
                         <DropdownMenuLabel className='text-white flex justify-center font-bold'>Ai level</DropdownMenuLabel>
 
-                        <DropdownMenuRadioGroup value={position} onValueChange={setPosition} className='text-white'>
-                          <DropdownMenuRadioItem value="first" >First level</DropdownMenuRadioItem>
-                          <DropdownMenuRadioItem value="second">Second level</DropdownMenuRadioItem>
-                          <DropdownMenuRadioItem value="third">Third level</DropdownMenuRadioItem>
-                        </DropdownMenuRadioGroup>
+                          <DropdownMenuRadioGroup
+                            value={String(level)}
+                            onValueChange={(value) => setLevel(Number(value))}
+                            className="text-white mt-4"
+                          >
+                            <DropdownMenuRadioItem value="1">First level</DropdownMenuRadioItem>
+                            <DropdownMenuRadioItem value="2">Second level</DropdownMenuRadioItem>
+                            <DropdownMenuRadioItem value="3">Third level</DropdownMenuRadioItem>
+                          </DropdownMenuRadioGroup>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
