@@ -431,7 +431,8 @@ function App() {
                     <DrawerContent className="bg-[#191919] text-white font-sans antialiased">
                       <DrawerHeader>
                         <DrawerTitle className="bold text-white">
-                          {(winner === 1) ?( (meVsAi) ?  "AI Win!" : "Ai Red Win" ): ((!aiVsAi) ? "Who is the conquer of the word!" : "Ai Blue Win")}
+                          {(aiVsAi || meVsAi) && ((winner === 1) ?( (meVsAi) ?  "AI Win!" : "Ai Red Win" ): ((!aiVsAi) ? "Who is the conquer of the word!" : "Ai Blue Win"))}
+                          {(!aiVsAi && !meVsAi)&& ((winner === 1)? "player red win ": "palyer blue win")}
                         </DrawerTitle>
                             
                               { (winner === 1) ? <img
