@@ -98,24 +98,26 @@ function App() {
       );
 
       setBoard(newarray);
+      setMainPlayerIndex(0);
     
-      try{
-          const response = await fetch("http://localhost:8000/reset",{
-            method:"GET",
-            headers: {
-                "Content-Type": "application/json",
-            },
-      
-          })
+        const init_game = async () => {
+            try{
+                const response = await fetch("http://localhost:8000/init",{
+                  method:"GET",
+                  headers: {
+                      "Content-Type": "application/json",
+                  },
+            
+                })
 
-          const data = await response.json();
+                const data = await response.json();
 
-          console.log(data.message);
-      }catch(e){
-        console.log("fali to init game\n");
-      }
-
- 
+                console.log(data.message);
+            }catch(e){
+              console.log("fali to init game\n");
+            }
+        }
+      init_game();
 
   }
 
@@ -426,7 +428,7 @@ function App() {
                     <DrawerContent className="bg-[#191919] text-white font-sans antialiased">
                       <DrawerHeader>
                         <DrawerTitle className="bold text-white">
-                          {(winner === 1 && meVsAi) ? "AI Win!" : "Who is the conquer of the word!"}
+                          {(winner === 1) ?( (meVsAi) ?  "AI Win!" : "Ai Red Win" ): ((!aiVsAi) ? "Who is the conquer of the word!" : "Ai Blue Win")}
                         </DrawerTitle>
                             
                               { (winner === 1) ? <img
