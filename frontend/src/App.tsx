@@ -28,6 +28,8 @@ import {
 
 
 import CategoryIcon from '@mui/icons-material/Category';
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import { GrRobot } from "react-icons/gr";
 
 import playerWinImg from './images/won.gif'
 import playerLoseImg from './images/lose.gif'
@@ -56,6 +58,7 @@ function App() {
   const [meVsAi, setMeVsAi] = useState(true);
   const [level, setLevel] = useState(2);
   const [aiVsAi , setAiVsAi] = useState(false);
+
 
   //player
   const [mainPlayerIndex, setMainPlayerIndex] = useState(0);
@@ -494,16 +497,58 @@ function App() {
 
                    <div className='flex-4 pr-2.5'>
                       <div className='justify-center align-center   gap-10'>
-                           {
+                           { (!aiVsAi && !meVsAi) &&
                             player_color.map((color , index) => {
                               return(
                                 <>
                                     {
-                                      (isLive && index === mainPlayerIndex) && <div className='h-[20px] w-[20px] rounded-full m-[5px] inline-block' style={{ backgroundColor: color, border:"3px solid white" }}></div>
+                                      (isLive && index === mainPlayerIndex ) && <div className='h-[20px] w-[20px] rounded-full m-[5px] inline-block' style={{ backgroundColor: color, border:"3px solid white" }}></div>
                                     }
                                     {
-                                      (isLive && index !== mainPlayerIndex) && <div className='h-[20px] w-[20px] rounded-full m-[5px] inline-block' style={{ backgroundColor: color , border: "3px solid #191919"}}></div>
+                                      (isLive && index !== mainPlayerIndex ) && <div className='h-[20px] w-[20px] rounded-full m-[5px] inline-block' style={{ backgroundColor: color , border: "3px solid #191919"}}></div>
                                     }
+
+                                    
+                                
+                                </>
+
+                              )
+                            }
+                          )
+                      }
+
+                      { (meVsAi) && 
+                            player_color.map((color , index) => {
+                              return(
+                                <>
+                                    {
+                                      (isLive && index === mainPlayerIndex ) && <div className='h-[20px] w-[20px] rounded-full m-[5px] inline-block' style={{ backgroundColor: color, border:"3px solid white" }}>{(mainPlayerIndex !== 0) && <GrRobot className="w-[14px] h-[16px] m-auto text-white" />}</div>
+                                    }
+                                    {
+                                      (isLive && index !== mainPlayerIndex ) && <div className='h-[20px] w-[20px] rounded-full m-[5px] inline-block' style={{ backgroundColor: color , border: "3px solid #191919"}}> <GrRobot className="w-[14px] h-[16px] m-auto text-white" /></div>
+                                    }
+
+                                    
+                                
+                                </>
+
+                              )
+                            }
+                          )
+                      }
+
+                       { (aiVsAi) && 
+                            player_color.map((color , index) => {
+                              return(
+                                <>
+                                    {
+                                      (isLive && index === mainPlayerIndex ) && <div className='h-[20px] w-[20px] rounded-full m-[5px] inline-block' style={{ backgroundColor: color, border:"3px solid white" }}><GrRobot className="w-[14px] h-[16px] m-auto text-white" /></div>
+                                    }
+                                    {
+                                      (isLive && index !== mainPlayerIndex ) && <div className='h-[20px] w-[20px] rounded-full m-[5px] inline-block' style={{ backgroundColor: color , border: "3px solid #191919"}}> <GrRobot className="w-[14px] h-[16px] m-auto text-white" /></div>
+                                    }
+
+                                    
                                 
                                 </>
 
@@ -516,8 +561,10 @@ function App() {
 
                     </div>
 
-                    <div className='flex-1 justify-right align-center pb-4 pt-2 gap-3'>
-                        icon
+                    <div className='flex-1 justify-right align-center pb-4  gap-3'>
+                        <div onClick={reset_game}>
+                          <RestartAltIcon />
+                        </div>
                     </div>
 
                 </div>
