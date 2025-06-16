@@ -80,4 +80,14 @@ async def init():
         return {"message": "Initialization complete"}
     else:
         return {"message": "Already initialized"}
+    
+    
+@app.get("/reset")
+async def init():
+    if init_done:
+        init_file()
+        return {"message": "reset done"}
+    else:
+        return {"message": "Please initialize first"}
+
 
