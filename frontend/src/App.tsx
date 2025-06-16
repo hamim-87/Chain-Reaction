@@ -76,6 +76,34 @@ function App() {
       init_game();
   },[])
 
+  const reset_game = async () => {
+
+    const newarray : CellType[][] = Array.from({ length: board_x }, () =>
+        Array.from({ length: board_y }, () => ({ player: null, state: 0 }))
+      );
+
+      setBoard(newarray);
+    
+      try{
+          const response = await fetch("http://localhost:8000/reset",{
+            method:"GET",
+            headers: {
+                "Content-Type": "application/json",
+            },
+      
+          })
+
+          const data = await response.json();
+
+          console.log(data.message);
+      }catch(e){
+        console.log("fali to init game\n");
+      }
+
+ 
+
+  }
+
   const check_gameover = () => {
         let one_win = true
         let two_lose = true
@@ -386,15 +414,15 @@ function App() {
                       <DropdownMenuContent className="w-56 bg-[#35393b] ">
                         <DropdownMenuLabel ></DropdownMenuLabel>
                         <DropdownMenuGroup className='text-white'>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={async () => { setAiVsAi(false); setMeVsAi(false);await reset_game();setCanClick(true)}}>
                             Play with friends
                             <DropdownMenuShortcut>⇧⌘</DropdownMenuShortcut>
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={async () =>{ setAiVsAi(false); setMeVsAi(true); await reset_game();}}>
                             Play with AI
                             <DropdownMenuShortcut>[⌘]</DropdownMenuShortcut>
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={async () =>{  await reset_game();setAiVsAi(true);setMeVsAi(false);}}>
                             AI vs AI
                             <DropdownMenuShortcut>:⌘</DropdownMenuShortcut>
                           </DropdownMenuItem>
