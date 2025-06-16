@@ -198,7 +198,7 @@ class ChainreactionAgent:
 
         for i in range(self.row):
             for j in range(self.col):
-                max_capacity = self.calculate_critical_mass(i, j)
+                max_capacity = self.critical_mass[i][j]
                 cell = board[i][j]
 
                 if cell["player"] == self.ai_color:
@@ -237,20 +237,23 @@ class ChainreactionAgent:
         for i in range(self.row):
             for j in range(self.col):
                 cell = board[i][j]
+                critical_mass = self.get_critical_mass(i, j)
+                state = cell["state"]
+
                 if cell["player"] == self.ai_color:
-                    vulnerable = False
-                    for dx, dy in self.directions:
-                        ni, nj = i + dx, j + dy
-                        if 0 <= ni < self.row and 0 <= nj < self.col:
-                            neighbor = board[ni][nj]
-                            if neighbor["player"] == self.opponent_color and neighbor["state"] == self.get_critical_mass(ni, nj) - 1:
-                                vulnerable = True
-                    if vulnerable:
-                        ai_score -= 2
+                    if state == critical_mass - 1:
+                        ai_score += 3
+                    elif state == critical_mass - 2:
+                        ai_score += 2
                     else:
                         ai_score += 1
                 elif cell["player"] == self.opponent_color:
-                    op_score += 1
+                    if state == critical_mass - 1:
+                        op_score += 3
+                    elif state == critical_mass - 2:
+                        op_score += 2
+                    else:
+                        op_score += 1
 
         return ai_score - op_score
     

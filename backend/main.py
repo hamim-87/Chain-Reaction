@@ -70,24 +70,19 @@ async def get_next_move(response: Response):
 
 @app.get("/init")
 async def init():
-    global agent_red, agent_blue, init_done
-    if not init_done:
-        agent_red = ChainreactionAgent(9, 6, "R", "B")
-        agent_blue = ChainreactionAgent(9, 6, "B", "R")
-        agent_blue.set_huristic(2)
-        init_file()
-        init_done = True
-        return {"message": "Initialization complete"}
-    else:
-        return {"message": "Already initialized"}
+    global agent_red, agent_blue
+
+    agent_red = ChainreactionAgent(9, 6, "R", "B")
+    agent_blue = ChainreactionAgent(9, 6, "B", "R")
+    agent_blue.set_huristic(5)
+    init_file()
+    return {"message": "Initialization complete"}
+
     
     
 @app.get("/reset")
 async def init():
-    if init_done:
-        init_file()
-        return {"message": "reset done"}
-    else:
-        return {"message": "Please initialize first"}
+    init_file()
+    return {"message": "reset done"}
 
 
